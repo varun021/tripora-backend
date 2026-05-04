@@ -1,0 +1,80 @@
+enum Gender {
+    MALE
+    FEMALE
+    OTHER
+}
+
+enum VerificationType {
+    OTP
+    EMAIL
+}
+
+model User {
+  id              String   @id @default(dbgenerated("gen_random_uuid")) @db.Uuid
+  email           String   @unique
+  phone           String   @unique
+  passwordHash    String
+
+  isBanned        Boolean  @default(false)
+  isActive        Boolean  @default(true)
+
+  invitedViaCode  String?
+  verifiedBadge   Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  profile         UserProfile?
+  sessions        AuthSession[]
+  verifications   UserVerification[]
+}
+
+model UserVerification {
+  id        String   @id @default(dbgenerated("gen_random_uuid")) @db.Uuid
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      VerificationType
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  @@index([userId])
+}
+
+model AuthSession {
+  id            String   @id @default(dbgenerated("gen_random_uuid")) @db.Uuid
+  userId        String   @db.Uuid
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshToken  String
+  isRevoked     Boolean  @default(false)
+  expiresAt     DateTime
+
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+}
+
+model City {
+  id        String  @id @default(dbgenerated("gen_random_uuid")) @db.Uuid
+  name      String
+  state     String
+  isActive  Boolean @default(false)
+  users     UserProfile[]
+}
+
+model UserProfile {
+  id                String  @id @default(dbgenerated("gen_random_uuid")) @db.Uuid
+  userId            String  @unique
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade) 
+  displayName       String
+  age               Int
+  bio               String?
+  gender            String
+  travelStyle       String?
+  travelPersonality String?
+  budgetPreference  String?
+
+  cityId            String? @db.Uuid
+  city              City?   @relation(fields: [cityId], references: [id])
+}
