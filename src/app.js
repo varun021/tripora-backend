@@ -1,5 +1,6 @@
 import Fastify from "fastify";
 import { validatorCompiler, serializerCompiler } from "fastify-type-provider-zod";
+import { prismaPlugin } from "./plugins/prisma.js";
 
 export async function buildApp() {
     const app = Fastify({
@@ -8,6 +9,8 @@ export async function buildApp() {
 
     app.setValidatorCompiler(validatorCompiler);
     app.setSerializerCompiler(serializerCompiler);
+
+    app.register(prismaPlugin);
 
     return app;
 }
